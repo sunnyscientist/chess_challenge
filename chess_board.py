@@ -2,13 +2,14 @@ import pandas as pd
 from colorama import Back
 from tabulate import tabulate
 
-from chess_pieces import (WhiteKing, WhiteQueen, WhiteBishop, 
+from chess_pieces import (ChessPiece, WhiteKing, WhiteQueen, WhiteBishop, 
 WhiteKnight, WhiteRook, WhitePawn, BlackKing, BlackQueen, BlackBishop,
-BlackKnight, BlackRook, BlackPawn)
+BlackKnight, BlackRook, BlackPawn, map_text_piece)
 
 class ChessBoard():
     def __init__(self):
         self.draw_board()
+        self.turns = 0
 
     def draw_board(self):
 
@@ -24,7 +25,9 @@ class ChessBoard():
         print(printed_chessboard)
 
     def initialise_game(self, piece_unicode=False):
-
+        """
+        Initialises board with starting positions of pieces
+        """
         # white pieces
         white_queen = WhiteQueen(position=[8,'D'], unicode=piece_unicode)
         white_king = WhiteKing(position=[8,'E'], unicode=piece_unicode)
@@ -56,11 +59,77 @@ class ChessBoard():
         for setpiece in chess_set:
             if isinstance(setpiece, list):
                 for piece in setpiece:
-                    self.chessboard.loc[piece.position[0], piece.position[1]] = piece
+                    self.chessboard.loc[piece.position[0], piece.position[1]] \
+                        = piece
             else:
-                self.chessboard.loc[setpiece.position[0], setpiece.position[1]] = setpiece      
+                self.chessboard.loc[setpiece.position[0], \
+                    setpiece.position[1]] = setpiece
+
+        self.white_army = [white_queen, white_king, white_bishops,\
+            white_knights, white_rooks, white_pawns]  
+        self.black_army = [black_queen, black_king, black_bishops,\
+            black_knights, black_rooks, black_pawns]
         
         self.print_chessboard()
+    
+    def check_command(self, player):
+        """
+        Checks syntax of move command
+        """ 
+        command_success = []
+        while True:     
+            try:
+                command = input('Player {} - Enter move:\t'.format(player))  
+                piece, start_pos, end_pos = command.split()
+
+                #find invalid commands
+                if piece not in map_text_piece.keys():
+                    raise Exception( 'Invalid Acronym for Piece!')
+                if len(start_pos)!=2 or len(end_pos)!=2:
+                    raise Exception('Piece position not in valid format')
+                if piece[0] != 'W' and self.turns == 0:
+                    raise Exception('For the first turn, white moves first')
+                
+                #correct ordering of grid position if necessary
+                if start_pos[0].isdigit() and start_pos[1].isalpha():
+                    correct_start_pos = [int(start_pos[0]), start_pos[1]]
+                elif start_pos[1].isdigit() and start_pos[0].isalpha():
+                    correct_start_pos = [int(start_pos[1]), start_pos[0]]
+                else:
+                    raise Exception((('Board Position must be composed of a '),
+                    ('letter and number')))
+                
+                if end_pos[0].isdigit() and end_pos[1].isalpha():
+                    correct_end_pos = [int(end_pos[0]), end_pos[1]]
+                elif end_pos[1].isdigit() and end_pos[0].isalpha():
+                    correct_end_pos = [int(end_pos[1]), end_pos[0]]
+                else:
+                    raise Exception((('Board Position must be composed of a '),
+                    ('letter and number')))
+                
+                #make sure positions within board bounds
+                if correct_end_pos[1] not in self.cols or \
+                    correct_start_pos[1] not in self.cols:
+                    raise Exception('Board is bounded between A-H/1-8 inclusive')
+                if correct_end_pos[0] not in self.rows or \
+                    correct_start_pos[0] not in self.rows:
+                    raise Exception('Board is bounded between A-H/1-8 inclusive')
+
+                # TODO: check piece is at starting position
+
+            except Exception as e:
+                print('ERROR: {}\n'.format(e))
+                print ('Please try again.\n')
+            else:
+                command_success.append(map_text_piece[piece])
+                command_success.append(correct_start_pos)
+                command_success.append(correct_end_pos)
+                break
+        return command_success
+    
+    def remove_invalid_moves(self, chesspiece, startpos):
+        unhindered_moves = ChessPiece(position=startpos).get_unhindered_positions()
+        print(unhindered_moves)
     
     def apply_board_colours(self):
         # TODO: style board
