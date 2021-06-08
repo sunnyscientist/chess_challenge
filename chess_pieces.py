@@ -1,3 +1,4 @@
+import pandas as pd
 import itertools
 
 class ChessPiece():
@@ -8,6 +9,7 @@ class ChessPiece():
         self.unicode = unicode
         self.symbols = [0, 1]
         self.num_moves = 0
+        self.killed = False
     
     @property
     def position(self):
@@ -35,6 +37,10 @@ class WhiteChessPiece(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position,unicode)
         self.colour = 'WHITE'
+    
+    def state_army(self, chessboard):
+        print(chessboard.applymap(type))
+
 
 class BlackChessPiece(ChessPiece):
     """Black Chess Piece"""
@@ -42,6 +48,9 @@ class BlackChessPiece(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
         self.colour = 'BLACK'
+
+    def state_army(self, chessboard):
+        print(chessboard.applymap(type))
 
 class Queen(ChessPiece):
 
@@ -56,12 +65,13 @@ class Queen(ChessPiece):
                 continue
             legal_positions.append((i,current_position[1]))
         
+        #horizontal moves
         for i in range(65,73):
             if chr(i) == current_position[1]:
                 continue
             legal_positions.append((current_position[0],chr(i)))
         
-
+        #vertical moves
         for i in range(1,current_position[0]):
             potential_cols = [ord(current_position[1]) + i,\
             ord(current_position[1]) - i]
@@ -72,6 +82,7 @@ class Queen(ChessPiece):
             legal_positions += list(itertools.product(potential_rows, \
             potential_cols))
         
+        #diagonal moves
         for i in range(8,current_position[0],-1):
             potential_cols = [ord(current_position[1]) + i,\
             ord(current_position[1]) - i]
@@ -81,6 +92,7 @@ class Queen(ChessPiece):
             potential_rows = [i for i in potential_rows if 1<=i<=8]
             legal_positions += list(itertools.product(potential_rows, \
             potential_cols))
+
         return legal_positions
 
 class King(ChessPiece):
@@ -156,7 +168,6 @@ class Rook(ChessPiece):
             legal_positions.append((current_position[0],chr(i)))
         return legal_positions
 
-
 class Knight(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
@@ -179,9 +190,6 @@ class Knight(ChessPiece):
             else:
                 legal_positions.remove((row,col))
         print (legal_positions)
-
-
-
 
 class Pawn(ChessPiece):
     def __init__(self, position, unicode=False):

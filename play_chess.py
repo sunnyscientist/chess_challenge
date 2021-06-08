@@ -29,15 +29,19 @@ if __name__ == '__main__':
     chessboard = ChessBoard()
     chessboard.initialise_game(piece_unicode=symbol)
     
-    players = [1,2]
-    player = players[0]
+    players = {1:'W', 2:'B'}
+    player = 1
 
     while True:
         # check command syntax
         chesspiece, startpos, end_pos = chessboard.check_command(player=player)
-        chessboard.remove_invalid_moves(chesspiece, startpos)
+        army_map = chessboard.get_army_state(players[player])
+        print(chesspiece.get_unhindered_positions())
+        print (army_map)
+        
         # check move is valid
         # check if opponent in way
+        #CHECK IF END POS HAD OPPOINENT PIECE
         # if valid move/take piece
             #add one to turns
             # log state of board
@@ -45,3 +49,11 @@ if __name__ == '__main__':
         # else retry until successful command
         
         break
+
+""" CREATE DICTINARIES OF POTENTIAL MOVES
+EG QUEEN {DIAG/HORIZONTAL[]/ VERTICAL}
+ITERATE THROUGH IN ORDER
+IF OPPENENT PIECE EXISTS REMOVE FOLLOWING FROM UNHINDERED
+PAWNS- CHECK FORWARD DIAGONAL ONLY IF OPPONENT
+KNIGHT CAN JUMP OVER PICE
+"""
