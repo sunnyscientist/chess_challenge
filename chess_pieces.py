@@ -10,10 +10,15 @@ class ChessPiece():
         self.symbols = [0, 1]
         self.num_moves = 0
         self.killed = False
+        self.can_jump = False
     
     @property
     def position(self):
         return self.__position
+
+    @position.setter
+    def position(self, position):
+        self.__position = position
     
     def __repr__(self):
         if self.unicode is True:
@@ -21,13 +26,27 @@ class ChessPiece():
         else:
             return "{}".format(self.symbols[0])
     
-    def get_unhindered_positions(self):
+    def get_unhindered_positions(self, endposition):
+        pass
+
+    def remove_invalid_positions(self, potential_positions):
         pass
 
     def is_valid_move(self):
-        legal_positions = self.get_unhindered_positions()
-
-
+        potential_positions = self.get_unhindered_positions()
+    
+    @staticmethod
+    def pos_within_bounds(position):
+        if type(position[0]) == int:
+            row,col = position
+        else:
+            col,row = position
+        
+        if not 1<=row<=8:
+            return False
+        if not 65<=ord(col)<=72:
+            return False
+        return True
 
     #TODO: implement counter to keep track of how many moves
     #TODO: log historical locations
@@ -40,7 +59,6 @@ class WhiteChessPiece(ChessPiece):
     
     def state_army(self, chessboard):
         print(chessboard.applymap(type))
-
 
 class BlackChessPiece(ChessPiece):
     """Black Chess Piece"""
@@ -57,124 +75,177 @@ class Queen(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
     
-    def get_unhindered_positions(self):
+    def get_unhindered_positions(self, endposition):
         current_position = self.position
-        legal_positions = []
+        potential_positions = {
+                        'left' : [], 
+                        'right' : [], 
+                        'up' : [], 
+                        'down' : [], 
+                        'diag1' : [],
+                        'diag2' : []
+                        }
+        #vertical moves
         for i in range(1,9):
             if i == current_position[0]:
                 continue
-            legal_positions.append((i,current_position[1]))
+            if i< current_position[0]:
+                potential_positions['down'].append((i,current_position[1]))
+            else:
+                potential_positions['up'].append((i,current_position[1]))
         
         #horizontal moves
         for i in range(65,73):
             if chr(i) == current_position[1]:
                 continue
-            legal_positions.append((current_position[0],chr(i)))
+            if i < ord(current_position[1]):
+                potential_positions['left'].append((current_position[0],chr(i)))
+            else:
+                potential_positions['right'].append((current_position[0],chr(i)))
         
-        #vertical moves
-        for i in range(1,current_position[0]):
+        for i in range(1,current_position[0]+1):
             potential_cols = [ord(current_position[1]) + i,\
             ord(current_position[1]) - i]
             potential_cols = [chr(i) for i in potential_cols if 65<=i<=72]
             potential_rows = [current_position[0] + i,\
             current_position[0] - i]
             potential_rows = [i for i in potential_rows if 1<=i<=8]
-            legal_positions += list(itertools.product(potential_rows, \
+            potential_positions['diag1'] += list(itertools.product(potential_rows, \
             potential_cols))
         
         #diagonal moves
-        for i in range(8,current_position[0],-1):
+        for i in range(8,current_position[0]-1,-1):
             potential_cols = [ord(current_position[1]) + i,\
             ord(current_position[1]) - i]
             potential_cols = [chr(i) for i in potential_cols if 65<=i<=72]
+            
             potential_rows = [current_position[0] + i,\
             current_position[0] - i]
             potential_rows = [i for i in potential_rows if 1<=i<=8]
-            legal_positions += list(itertools.product(potential_rows, \
+            
+            potential_positions['diag2'] += list(itertools.product(potential_rows, \
             potential_cols))
-
-        return legal_positions
+        
+        for direction, square in potential_positions.items():
+            if tuple(endposition) in square:
+                return potential_positions[direction]
+        # TODO: sort diaognal values
+    
+    def find_legal_moves(self, army_map):
+        #remove positions which are occupied by same colour
+        pass
 
 class King(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
     
-    def get_unhindered_positions(self):
+    def get_unhindered_positions(self, endposition):
         current_position = self.position
+        
         potential_rows = [current_position[0]+1, current_position[0]-1, \
             current_position[0]]
         potential_rows = [i for i in potential_rows if 1<=i<=8]
         potential_cols = [ord(current_position[1]) + 1,\
             ord(current_position[1]) - 1, ord(current_position[1])]
         potential_cols = [chr(i) for i in potential_cols if 65<=i<=72]
-        legal_positions = list(itertools.product(potential_rows, \
+        
+        potential_positions = list(itertools.product(potential_rows, \
             potential_cols))
-        if (current_position[0], current_position[1]) in legal_positions:
-            legal_positions.remove((current_position[0], current_position[1]))
-        return (legal_positions)
+        
+        if (current_position[0], current_position[1]) in potential_positions:
+            potential_positions.remove((current_position[0], current_position[1]))
+        
+        if tuple(endposition) in potential_positions:
+            return potential_positions
 
 class Bishop(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
     
-    def get_unhindered_positions(self):
+    def get_unhindered_positions(self, endposition):
         """
         Bishops can move diagonally i.e.
         the same number of squares horizontal and vertical
         """
         current_position = self.position
-        legal_positions = []
+        potential_positions = {'diag1' : [],'diag2' : []}
 
-        for i in range(1,current_position[0]):
+        for i in range(1,current_position[0]+1):
             potential_cols = [ord(current_position[1]) + i,\
             ord(current_position[1]) - i]
             potential_cols = [chr(i) for i in potential_cols if 65<=i<=72]
+            
             potential_rows = [current_position[0] + i,\
             current_position[0] - i]
             potential_rows = [i for i in potential_rows if 1<=i<=8]
-            legal_positions += list(itertools.product(potential_rows, \
-            potential_cols))
+            
+            potential_positions['diag1'] += sorted(list(itertools.product( \
+                potential_rows,potential_cols)), key=lambda x:x[0])
         
-        for i in range(8,current_position[0],-1):
+        for i in range(8,current_position[0]-1,-1):
             potential_cols = [ord(current_position[1]) + i,\
             ord(current_position[1]) - i]
             potential_cols = [chr(i) for i in potential_cols if 65<=i<=72]
+            
             potential_rows = [current_position[0] + i,\
             current_position[0] - i]
             potential_rows = [i for i in potential_rows if 1<=i<=8]
-            legal_positions += list(itertools.product(potential_rows, \
-            potential_cols))
-        return (legal_positions)
+            
+            potential_positions['diag2'] += sorted(list(itertools.product( \
+                potential_rows,potential_cols)), key=lambda x:x[0])
+        
+        for direction, square in potential_positions.items():
+            print(square)
+            if tuple(endposition) in square:
+                return potential_positions[direction]
+        
+        # TODO: sprt diaognal values
 
 class Rook(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
 
-    def get_unhindered_positions(self):
+    def get_unhindered_positions(self, endposition):
         """
         Rooks can move either horizontally or vertically i.e.
         row or column must stay the same while the other changes
         """
         current_position = self.position
-        legal_positions = []
+        potential_positions = potential_positions = {
+                        'left' : [], 
+                        'right' : [],
+                        'up' : [], 
+                        'down' : []
+                        }
         for i in range(1,9):
             if i == current_position[0]:
                 continue
-            legal_positions.append((i,current_position[1]))
+            if i< current_position[0]:
+                potential_positions['down'].append((i,current_position[1]))
+            else:
+                potential_positions['up'].append((i,current_position[1]))
         
+        #horizontal moves
         for i in range(65,73):
             if chr(i) == current_position[1]:
                 continue
-            legal_positions.append((current_position[0],chr(i)))
-        return legal_positions
+            if i < ord(current_position[1]):
+                potential_positions['left'].append((current_position[0],chr(i)))
+            else:
+                potential_positions['right'].append((current_position[0],chr(i)))
+        
+        for direction, square in potential_positions.items():
+            if tuple(endposition) in square:
+                return potential_positions[direction]
 
 class Knight(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
+        self.can_jump = True
     
-    def get_unhindered_positions(self, end_position):
+    def get_unhindered_positions(self, endposition):
         current_position = self.position
-        legal_positions = [
+        potential_positions = [
             (current_position[0]+2, chr(ord(current_position[1])+1)),
             (current_position[0]+2, chr(ord(current_position[1])-1)),
             (current_position[0]-2, chr(ord(current_position[1])+1)),
@@ -184,12 +255,11 @@ class Knight(ChessPiece):
             (current_position[0]-1, chr(ord(current_position[1])-2)),
             (current_position[0]+1, chr(ord(current_position[1])-2))
             ]
-        for row,col in legal_positions:
-            if 1 <= row <= 8 and 65 <= ord(col) <= 72:
-                continue
-            else:
-                legal_positions.remove((row,col))
-        print (legal_positions)
+        potential_positions =[i for i in potential_positions \
+            if self.pos_within_bounds(i) is True]
+        
+        if tuple(endposition) in potential_positions:
+            return potential_positions
 
 class Pawn(ChessPiece):
     def __init__(self, position, unicode=False):
@@ -225,12 +295,36 @@ class WhitePawn(Pawn, WhiteChessPiece):
         super().__init__(position, unicode)
         self.symbols = ['WP', u'\u2659']
     
-    def get_unhindered_positions(self):
+    def get_unhindered_positions(self, endposition):
         current_position = self.position
-        legal_positions = [(current_position[0]-1, current_position[1])]
+        potential_positions = {
+                        'down' : [], 
+                        'diag1' : [],
+                        'diag2' : []
+                        }
+        potential_positions['down'] += [(current_position[0]-1, current_position[1])]
         if self.num_moves == 0:
-            legal_positions += [(current_position[0]-2, current_position[1])]
-        return legal_positions
+            potential_positions['down'] += [(current_position[0]-2, current_position[1])]
+        
+        potential_positions['diag1'].append(
+            (current_position[0]-1, \
+            chr(ord(current_position[1])-1)
+            ))
+
+        potential_positions['diag1'].append(
+            (current_position[0]-1, \
+            chr(ord(current_position[1])+1)
+            ))
+
+        # for direction, square in potential_positions.items():
+        #     if 1<=square[0]<=8:
+        #         potential_positions[direction].remove(square)
+        #     if 65<=ord(square[1])<=72:
+        #         potential_positions[direction].remove(square)
+
+        for direction, square in potential_positions.items():
+            if tuple(endposition) in square:
+                return potential_positions[direction]
 
 class BlackQueen(Queen, BlackChessPiece):
     def __init__(self, position, unicode=False):
@@ -262,12 +356,20 @@ class BlackPawn(Pawn,BlackChessPiece):
         super().__init__(position, unicode)
         self.symbols =  ['BP', u'\u265F']
     
-    def get_unhindered_positions(self):
+    def get_unhindered_positions(self, endposition):
         current_position = self.position
-        legal_positions = [(current_position[0]+1, current_position[1])]
+        potential_positions = {
+                        'up' : [], 
+                        'diag1' : [],
+                        'diag2' : []
+                        }
+        potential_positions['up'] += [(current_position[0]+1, current_position[1])]
         if self.num_moves == 0:
-            legal_positions += [(current_position[0]+2, current_position[1])]
-        return legal_positions
+            potential_positions['up'] += [(current_position[0]+2, current_position[1])]
+        
+        for direction, square in potential_positions.items():
+            if tuple(endposition) in square:
+                return potential_positions[direction]
 
 map_text_piece = {'WQ' : WhiteQueen,
                 'WK' : WhiteKing,
@@ -297,19 +399,38 @@ chess_piece_acronyms = {'WQ' : 'White Queen',
 
 if __name__ == '__main__':
     bishop = Bishop(position=[4,'C'])
-    bishop.get_unhindered_positions([6,'K'])
-
     king = WhiteKing(position=[1,'E'])
-    king.get_unhindered_positions()
-    king.get_unhindered_positions()
-
     rook = BlackRook(position=[3,'C'])
-    rook.get_unhindered_positions()
-    rook.get_unhindered_positions()
-    rook.get_unhindered_positions()
-
     queen = Queen(position=[4,'D'])
-    queen.get_unhindered_positions()
+    knight = BlackKnight(position=[8,'G'])
+    whitepawn = WhitePawn(position=[7,'B'])
+    blackpawn = BlackPawn(position=[2,'H'])
 
-    knight = BlackKnight(position=[4,'E'])
-    knight.get_unhindered_positions()
+    #test positions
+    print ('\nBISHOP')
+    print(bishop.get_unhindered_positions(endposition=[2,'E']))
+    print(bishop.get_unhindered_positions(endposition=[3,'E']))
+    
+    print ('\nKING')
+    print(king.get_unhindered_positions(endposition=[2,'E']))
+    print(king.get_unhindered_positions(endposition=[3,'F']))
+
+    print ('\nQUEEN')
+    print(queen.get_unhindered_positions(endposition=[8,'H']))
+    print(queen.get_unhindered_positions(endposition=[3,'F']))
+
+    print ('\nROOK')
+    print(rook.get_unhindered_positions(endposition=[2,'C']))
+    print(rook.get_unhindered_positions(endposition=[7,'G']))
+
+    print('\nKNIGHT')
+    #print(knight.get_unhindered_positions(endposition=[8,'f']))
+    print(knight.get_unhindered_positions(endposition=[6,'H']))
+
+    print('\n WHITE PAWN')
+    print(whitepawn.get_unhindered_positions(endposition=[6,'B']))
+    print(whitepawn.get_unhindered_positions(endposition=[8,'E']))
+
+    print('\n BLACK PAWN')
+    print(blackpawn.get_unhindered_positions(endposition=[4,'H']))
+    print(blackpawn.get_unhindered_positions(endposition=[8,'E']))

@@ -8,10 +8,10 @@ BlackKnight, BlackRook, BlackPawn, map_text_piece)
 
 class ChessBoard():
     def __init__(self):
-        self.draw_board()
+        self.init_board()
         self.turns = 0
 
-    def draw_board(self):
+    def init_board(self):
 
         self.cols = [chr(i) for i in range(65,73)]
         self.rows = [i for i in range(8,0,-1)]
@@ -61,9 +61,9 @@ class ChessBoard():
             self.black_pawns]
 
         self.army_map = {'W': self.white_army, 'B' : self.black_army}
-        chess_set = self.white_army + self.black_army
+        self.chess_set = self.white_army + self.black_army
 
-        for setpiece in chess_set:
+        for setpiece in self.chess_set:
             if isinstance(setpiece, list):
                 for piece in setpiece:
                     self.chessboard.loc[piece.position[0], piece.position[1]] \
@@ -74,6 +74,18 @@ class ChessBoard():
         
         self.print_chessboard()
     
+    def get_army_location(self, colour):
+        army_location = []
+        for setpiece in self.army_map[colour]:
+            if isinstance(setpiece, list):
+                for piece in setpiece:
+                    if piece.killed is False:
+                        army_location.append(tuple(piece.position))
+            else:
+                if setpiece.killed is False:
+                        army_location.append(tuple(setpiece.position))
+        return army_location
+        
     def check_command(self, player):
         """
         Checks syntax of move command
@@ -83,6 +95,8 @@ class ChessBoard():
             try:
                 command = input('Player {} - Enter move:\t'.format(player))  
                 piece, start_pos, end_pos = command.split()
+                start_pos = start_pos.upper()
+                end_pos = end_pos.upper()
 
                 #find invalid commands
                 if piece not in map_text_piece.keys():
@@ -91,6 +105,8 @@ class ChessBoard():
                     raise Exception('Piece position not in valid format')
                 if piece[0] != 'W' and self.turns == 0:
                     raise Exception('For the first turn, white moves first')
+                if start_pos == end_pos:
+                    raise('End position cannot be the same as the start')
                 
                 #correct ordering of grid position if necessary
                 if start_pos[0].isdigit() and start_pos[1].isalpha():
@@ -143,17 +159,16 @@ class ChessBoard():
                 break
         return command_success
 
-    # def get_army_state(self, colour):
-    #     army_location = []
-    #     for setpiece in self.army_map[colour]:
-    #         if isinstance(setpiece, list):
-    #             for piece in setpiece:
-    #                 if piece.killed is False:
-    #                     army_location.append(tuple(piece.position))
-    #         else:
-    #             if setpiece.killed is False:
-    #                     army_location.append(tuple(setpiece.position))
-    #     return army_location
+    def update_board(self):
+        for setpiece in self.chess_set:
+            if isinstance(setpiece, list):
+                for piece in setpiece:
+                    self.chessboard.loc[piece.position[0], piece.position[1]] \
+                        = piece
+            else:
+                self.chessboard.loc[setpiece.position[0], \
+                    setpiece.position[1]] = setpiece
+        self.print_chessboard()
 
 if __name__ == '__main__':
     chessboard = ChessBoard()
