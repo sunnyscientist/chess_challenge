@@ -10,6 +10,9 @@ class ChessBoard():
     def __init__(self):
         self.init_board()
         self.turns = 0
+        self.game_log = {}
+        self.fallen_white_army = []
+        self.fallen_black_army = []
 
     def init_board(self):
 
@@ -22,7 +25,14 @@ class ChessBoard():
     def print_chessboard(self):
         printed_chessboard = tabulate(self.chessboard, headers= self.cols, 
         showindex='always', tablefmt="fancy_grid", colalign=("center",))
+
+        if len(self.fallen_black_army) >0:
+            print(f'\nFallen Black Pieces: {self.fallen_black_army}\n')
+        print('\n')
         print(printed_chessboard)
+        print('\n')
+        if len(self.fallen_white_army) >0:
+            print(f'\nFallen White Pieces: {self.fallen_white_army}\n')
 
     def initialise_game(self, piece_unicode=False):
         """
@@ -103,10 +113,15 @@ class ChessBoard():
                     raise Exception( 'Invalid Acronym for Piece!')
                 if len(start_pos)!=2 or len(end_pos)!=2:
                     raise Exception('Piece position not in valid format')
-                if piece[0] != 'W' and self.turns == 0:
-                    raise Exception('For the first turn, white moves first')
                 if start_pos == end_pos:
                     raise('End position cannot be the same as the start')
+                
+                if piece[0] != 'W' and self.turns == 0:
+                    raise Exception('For the first turn, white moves first')
+                elif piece[0] == 'W' and self.turns%2==1:
+                    raise Exception('Black Piece to Move')
+                elif piece[0] == 'B' and self.turns%2==0:
+                    raise Exception('White Piece to Move')
                 
                 #correct ordering of grid position if necessary
                 if start_pos[0].isdigit() and start_pos[1].isalpha():
@@ -139,21 +154,14 @@ class ChessBoard():
                     raise Exception('{} does not exist at {}'.format(piece, \
                         correct_start_pos))
                 
-                piece_in_play = None
-                for setpiece in self.army_map[piece[0]]:
-                    if isinstance(setpiece, list):
-                        for piece in setpiece:
-                            if piece.position == correct_start_pos:
-                                piece_in_play = piece
-                    else:
-                        if setpiece.position == correct_start_pos:
-                                piece_in_play = setpiece
+                self.piece_in_play = self.find_piece_onboard(pos=correct_start_pos,\
+                    colour=piece[0])
 
             except Exception as e:
                 print('ERROR: {}\n'.format(e))
                 print ('Please try again.\n')
             else:
-                command_success.append(piece_in_play)
+                command_success.append(self.piece_in_play)
                 command_success.append(correct_start_pos)
                 command_success.append(correct_end_pos)
                 break
@@ -169,6 +177,16 @@ class ChessBoard():
                 self.chessboard.loc[setpiece.position[0], \
                     setpiece.position[1]] = setpiece
         self.print_chessboard()
+
+    def find_piece_onboard(self, pos, colour):
+        for setpiece in self.army_map[colour]:
+            if isinstance(setpiece, list):
+                for piece in setpiece:
+                    if piece.position == pos:
+                        return piece
+            else:
+                if setpiece.position == pos:
+                    return setpiece
 
 if __name__ == '__main__':
     chessboard = ChessBoard()

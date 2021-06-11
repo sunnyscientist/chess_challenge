@@ -1,6 +1,6 @@
 import time
 from chess_board import ChessBoard
-from chess_pieces import chess_piece_acronyms
+from chess_pieces import chess_piece_acronyms, WhiteChessPiece
 
 if __name__ == '__main__':
     print ('\n\nWelcome to a game of chess!')
@@ -34,74 +34,85 @@ if __name__ == '__main__':
     opponent = 2
 
     while True:
-        # check command syntax
+        # log state of board (dict with turn number)
+        chessboard.game_log[chessboard.turns] = chessboard.chessboard
+        
+        #validate command 
         chesspiece, startpos, endpos = chessboard.check_command(player=player)
         endpos = tuple(endpos)
         print (chesspiece, startpos, endpos)
-        army_map = chessboard.get_army_location(colour= players[player])        
+        #get legal moves
+        player_army = chessboard.get_army_location(colour= players[player])        
         opposition_army = chessboard.get_army_location(colour= players[opponent])
         potential_piece_positions = chesspiece.get_unhindered_positions(endpos)
-        print (potential_piece_positions)
-        print (endpos)
-        #remove squares occupied by own side
-        for pos in potential_piece_positions:
-            if pos in army_map:
-                potential_piece_positions.remove(pos)
-        if len(potential_piece_positions) == 0:
-            print('Invalid move: One of your pieces occupies this space')
+        
+        if potential_piece_positions is None:
+            print('Invalid directional move for this piece')
             continue
-
+        
         attack = None
         valid_move = None
-        # TODO: FIGURE OUT PIECE MOVEMENTS SPECIFICALLY
+        # TODO: FIGURE OUT PAWN MOVEMENT
         # all pieces apart from knight can't jump
         if chesspiece.can_jump is True: #knight
             if endpos in potential_piece_positions:
-                valid_move = True
                 if endpos in opposition_army:
+                    valid_move = True
                     attack = True
+                elif endpos in player_army:
+                    valid_move = False
+                    attack = False
                 else:
+                    valid_move = True
                     attack = False
             else:
                 valid_move = False
                 attack = False
         else:
+            position_idx = potential_piece_positions.index(endpos)
             #iterate through in order of movement to check if any obstructions
-            pass
-        print (valid_move)
+            for i in range(position_idx+1):
+                if potential_piece_positions[i] in opposition_army or \
+                    potential_piece_positions[i] in player_army:
+                    if i < position_idx:
+                        valid_move = False
+                    elif i == position_idx and \
+                        potential_piece_positions[i] in opposition_army:
+                        valid_move = True
+                        attack = True
+                    elif i == position_idx and \
+                        potential_piece_positions[i] in player_army:
+                        valid_move = False
+                        attack = False
+            #no obstructions
+            if valid_move is None:
+                valid_move =True
+                attack = False
+                
         if valid_move is not True:
+            print('Illegal move')
             continue
-        print (chesspiece.position)
+
+        if attack is True:
+            #find piece at location
+            #take it off board
+            #add to relevant fallen army
+            fallen_piece = chessboard.find_piece_onboard(pos = endpos, \
+                colour = players[opponent] )
+            fallen_piece.killed = True
+            if issubclass(fallen_piece, WhiteChessPiece):
+                chessboard.fallen_white_army.append(fallen_piece)
+            else:
+                chessboard.fallen_black_army.append(fallen_piece)
+            print(chessboard.fallen_black_army)
+            print(chessboard.fallen_white_army)
+            print(fallen_piece, fallen_piece.killed)
+            
         chessboard.chessboard.loc[startpos[0],startpos[1]] = None
         chesspiece.position = endpos
-        print (chesspiece.position)
         chessboard.update_board()
         chessboard.turns +=1
         player,opponent = opponent,player
-        print (player)
-        # log state of board (dict with turn number)
-        # if attack is true mark fallen piece
-        # take fallen piece of board
-        # redraw board
-        # add one to turns
-        # switch player 
-
-
-
-
-
-
-        
-        # check move is valid
-        # check if opponent in way
-        # CHECK IF END POS HAD OPPOINENT PIECE
-        # if valid move/take piece
-            #add one to turns
-            # log state of board
-            #switch players
-        # else retry until successful command
-        
-        break
 
 """ CREATE DICTINARIES OF POTENTIAL MOVES
 EG QUEEN {DIAG/HORIZONTAL[]/ VERTICAL}
