@@ -1,10 +1,9 @@
 import pandas as pd
-from colorama import Back
 from tabulate import tabulate
 
-from chess_pieces import (ChessPiece, WhiteKing, WhiteQueen, WhiteBishop, 
-WhiteKnight, WhiteRook, WhitePawn, BlackKing, BlackQueen, BlackBishop,
-BlackKnight, BlackRook, BlackPawn, map_text_piece)
+from chess_challenge.chess_pieces import (ChessPiece, WhiteKing, WhiteQueen, 
+WhiteBishop, WhiteKnight, WhiteRook, WhitePawn, BlackKing, BlackQueen, 
+BlackBishop, BlackKnight, BlackRook, BlackPawn, map_text_piece)
 
 class ChessBoard():
     def __init__(self):
