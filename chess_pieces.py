@@ -119,28 +119,7 @@ class Queen(ChessPiece):
         for i in range(1, space_right+1):
             pos = (current_position[0], chr(ord(current_position[1])+i))
             if self.pos_within_bounds(pos):
-                potential_positions['right'].append(pos)
-        
-        # #diagonal moves
-        # for i in range(1,current_position[0]+1):
-        #     backsquares = current_position[0] - i
-        #     forwardsquares = current_position[0] + i
-
-        #     diag1 = (backsquares, chr(ord(current_position[1])+i))
-        #     if self.pos_within_bounds(diag1):
-        #         potential_positions['diag1'].append(diag1)
-
-        #     diag2 = (backsquares, chr(ord(current_position[1])-i))
-        #     if self.pos_within_bounds(diag2):
-        #         potential_positions['diag2'].append(diag2) 
-
-        #     diag3 = (forwardsquares, chr(ord(current_position[1])-i))
-        #     if self.pos_within_bounds(diag3):
-        #         potential_positions['diag3'].append(diag3)  
-            
-        #     diag4 = (forwardsquares, chr(ord(current_position[1])+i))
-        #     if self.pos_within_bounds(diag4):
-        #         potential_positions['diag4'].append(diag4)         
+                potential_positions['right'].append(pos)        
         
         for direction, square in potential_positions.items():
             if tuple(endposition) in square:
@@ -445,41 +424,3 @@ chess_piece_acronyms = {'WQ' : 'White Queen',
                 'BKn' : 'Black Knight',
                 'BR' : 'Black Rook',
                 'BP' : 'Black Pawn'}
-
-if __name__ == '__main__':
-    bishop = Bishop(position=[2,'B'])
-    king = WhiteKing(position=[1,'E'])
-    rook = BlackRook(position=[3,'E'])
-    queen = Queen(position=[2,'E'])
-    knight = BlackKnight(position=[8,'G'])
-    whitepawn = WhitePawn(position=[7,'B'])
-    blackpawn = BlackPawn(position=[2,'H'])
-
-    #test positions
-    print ('\nBISHOP')
-    print(bishop.get_unhindered_positions(endposition=[2,'E']))
-    # print(bishop.get_unhindered_positions(endposition=[3,'E']))
-    
-    # print ('\nKING')
-    # print(king.get_unhindered_positions(endposition=[2,'E']))
-    # print(king.get_unhindered_positions(endposition=[3,'F']))
-
-    # print ('\nQUEEN')
-    # print(queen.get_unhindered_positions(endposition=[8,'H']))
-    # print(queen.get_unhindered_positions(endposition=[3,'F']))
-
-    # print ('\nROOK')
-    # print(rook.get_unhindered_positions(endposition=[2,'C']))
-    # print(rook.get_unhindered_positions(endposition=[7,'G']))
-
-    # print('\nKNIGHT')
-    # #print(knight.get_unhindered_positions(endposition=[8,'f']))
-    # print(knight.get_unhindered_positions(endposition=[6,'H']))
-
-    # print('\n WHITE PAWN')
-    # print(whitepawn.get_unhindered_positions(endposition=[6,'B']))
-    # print(whitepawn.get_unhindered_positions(endposition=[8,'E']))
-
-    # print('\n BLACK PAWN')
-    # print(blackpawn.get_unhindered_positions(endposition=[4,'H']))
-    # print(blackpawn.get_unhindered_positions(endposition=[8,'E']))
