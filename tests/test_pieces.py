@@ -50,25 +50,25 @@ def test_rook_movement():
         [(4,'E'), (5,'E'), (6,'E'), (7,'E'), (8,'E')],
         None)
 
-def test_whitepawn_movement():
-    whitepawn = WhitePawn(position=[7,'B'])
-    legal1 = whitepawn.get_unhindered_positions(endposition=[5,'B'])
-    legal2 = whitepawn.get_unhindered_positions(endposition=[6,'A'])
-    illegal1 = whitepawn.get_unhindered_positions(endposition=[7,'C'])
-    illegal2 = whitepawn.get_unhindered_positions(endposition=[3,'B'])
+def test_blackpawn_movement():
+    blackpawn = BlackPawn(position=[7,'B'])
+    legal1 = blackpawn.get_unhindered_positions(endposition=[5,'B'])
+    legal2 = blackpawn.get_unhindered_positions(endposition=[6,'A'])
+    illegal1 = blackpawn.get_unhindered_positions(endposition=[7,'C'])
+    illegal2 = blackpawn.get_unhindered_positions(endposition=[3,'B'])
     assert(legal1, legal2, illegal1, illegal2) == (
         [(6,'B'), (5,'B')],
         [(6,'A')],
         None,
         None)
 
-def test_blackpawn_movement():
-    blackpawn = BlackPawn(position=[2,'H'])
-    blackpawn.num_moves = 3
-    legal1 = blackpawn.get_unhindered_positions(endposition=[3,'H'])
-    legal2 = blackpawn.get_unhindered_positions(endposition=[3,'G'])
-    illegal1 = blackpawn.get_unhindered_positions(endposition=[4,'H'])
-    illegal2 = blackpawn.get_unhindered_positions(endposition=[1,'H'])
+def test_whitepawn_movement():
+    whitepawn = WhitePawn(position=[2,'H'])
+    whitepawn.num_moves = 3
+    legal1 = whitepawn.get_unhindered_positions(endposition=[3,'H'])
+    legal2 = whitepawn.get_unhindered_positions(endposition=[3,'G'])
+    illegal1 = whitepawn.get_unhindered_positions(endposition=[4,'H'])
+    illegal2 = whitepawn.get_unhindered_positions(endposition=[1,'H'])
     assert(legal1, legal2, illegal1, illegal2) == (
         [(3,'H')],
         [(3,'G')],

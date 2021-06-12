@@ -1,67 +1,9 @@
+import os
+import sys
 import time
+sys.path.insert(0,os.path.abspath('..'))
 from chess_board import ChessBoard
 from chess_pieces import (chess_piece_acronyms, WhiteChessPiece, Pawn)
-
-def is_valid_move(chessboard,chesspiece, endpos):
-    valid_move = None
-    attack = None
-
-    if chesspiece.colour[0] == 'W':
-        player = 'W'
-        opponent = 'B'
-    else:
-        player = 'B'
-        opponent = 'W'
-    player_army = chessboard.get_army_location(colour = player)        
-    opposition_army = chessboard.get_army_location(colour = opponent)
-    potential_piece_positions = chesspiece.get_unhindered_positions(endpos)
-        
-    if potential_piece_positions is None:
-        print('Invalid directional move for this piece')
-        valid_move = False
-        return valid_move, attack
-
-    if chesspiece.can_jump is True: #knight
-        if endpos in potential_piece_positions:
-            if endpos in opposition_army:
-                valid_move = True
-                attack = True
-            elif endpos in player_army:
-                valid_move = False
-            else:
-                valid_move = True
-        else:
-            valid_move = False
-    elif isinstance(chesspiece, Pawn) and chesspiece.diagonal_move is True:
-        if endpos in opposition_army:
-                valid_move = True
-                attack = True
-        else:
-            print('Pawn can only move diagonally if opponent is present.')
-            valid_move=False
-        chesspiece.diagonal_move = None #reset for next move
-    else:
-        position_idx = potential_piece_positions.index(endpos)
-        #iterate through in order of movement to check if any obstructions
-        for i in range(position_idx+1):
-            if potential_piece_positions[i] in opposition_army or \
-                potential_piece_positions[i] in player_army:
-                if i < position_idx:
-                    valid_move = False
-                    break
-                elif i == position_idx and \
-                    potential_piece_positions[i] in opposition_army:
-                    valid_move = True
-                    attack = True
-                elif i == position_idx and \
-                    potential_piece_positions[i] in player_army:
-                    valid_move = False
-        
-        if valid_move is None:
-            valid_move = True
-                        
-    return valid_move, attack
-
 
 if __name__ == '__main__':
     print ('\n\nWelcome to a game of chess!')
@@ -96,6 +38,7 @@ if __name__ == '__main__':
 
     while True:
         # log state of board (dict with turn number)
+        chessboard.print_chessboard()
         chessboard.game_log[chessboard.turns] = chessboard.chessboard
         
         #validate command 
@@ -117,8 +60,10 @@ if __name__ == '__main__':
 
             if isinstance(fallen_piece, WhiteChessPiece):
                 chessboard.fallen_white_army.append(fallen_piece)
+                print('die')
             else:
                 chessboard.fallen_black_army.append(fallen_piece)
+                print('dead')
                 
         chesspiece.num_moves+=1
         chesspiece.position = endpos   

@@ -1,7 +1,7 @@
 import pandas as pd
 from tabulate import tabulate
 
-from chess_pieces import (ChessPiece, WhiteKing, WhiteQueen, Pawn,
+from chess_challenge.chess_pieces import (ChessPiece, WhiteKing, WhiteQueen, Pawn,
 WhiteBishop, WhiteKnight, WhiteRook, WhitePawn, BlackKing, BlackQueen, 
 BlackBishop, BlackKnight, BlackRook, BlackPawn, map_text_piece)
 
@@ -25,13 +25,13 @@ class ChessBoard():
         printed_chessboard = tabulate(self.chessboard, headers= self.cols, 
         showindex='always', tablefmt="fancy_grid", colalign=("center",))
         print('\n===========================================================')
-        if len(self.fallen_black_army) >0:
-            print(f'\nFallen Black Pieces: {self.fallen_black_army}\n')
+        if len(self.fallen_white_army) >0:
+            print(f'\nFallen White Pieces: {self.fallen_white_army}\n')
         print('\n')
         print(printed_chessboard)
         print('\n')
-        if len(self.fallen_white_army) >0:
-            print(f'\nFallen White Pieces: {self.fallen_white_army}\n')
+        if len(self.fallen_black_army) >0:
+            print(f'\nFallen Black Pieces: {self.fallen_black_army}\n')
         print('===========================================================')
 
     def initialise_game(self, piece_unicode=False):
@@ -39,27 +39,27 @@ class ChessBoard():
         Initialises board with starting positions of pieces
         """
         # white pieces
-        self.white_queen = WhiteQueen(position=[8,'D'], unicode=piece_unicode)
-        self.white_king = WhiteKing(position=[8,'E'], unicode=piece_unicode)
-        self.white_bishops = [WhiteBishop(position=[8,'C'], unicode=piece_unicode), 
-                        WhiteBishop(position=[8,'F'], unicode=piece_unicode)]
-        self.white_knights = [WhiteKnight(position=[8,'B'], unicode=piece_unicode),
-                        WhiteKnight(position=[8,'G'], unicode=piece_unicode)]
-        self.white_rooks = [WhiteRook(position=[8,'A'], unicode=piece_unicode),
-                    WhiteRook(position=[8,'H'], unicode=piece_unicode)]
-        self.white_pawns = [WhitePawn(position=[7,i], unicode=piece_unicode) \
+        self.white_queen = WhiteQueen(position=[1,'D'], unicode=piece_unicode)
+        self.white_king = WhiteKing(position=[1,'E'], unicode=piece_unicode)
+        self.white_bishops = [WhiteBishop(position=[1,'C'], unicode=piece_unicode), 
+                        WhiteBishop(position=[1,'F'], unicode=piece_unicode)]
+        self.white_knights = [WhiteKnight(position=[1,'B'], unicode=piece_unicode),
+                        WhiteKnight(position=[1,'G'], unicode=piece_unicode)]
+        self.white_rooks = [WhiteRook(position=[1,'A'], unicode=piece_unicode),
+                    WhiteRook(position=[1,'H'], unicode=piece_unicode)]
+        self.white_pawns = [WhitePawn(position=[2,i], unicode=piece_unicode) \
             for i in self.chessboard.columns]
 
         # black pieces
-        self.black_queen = BlackQueen(position=[1,'D'], unicode=piece_unicode)
-        self.black_king = BlackKing(position=[1,'E'], unicode=piece_unicode)
-        self.black_bishops = [BlackBishop(position=[1,'C'], unicode=piece_unicode), 
-                        BlackBishop(position=[1,'F'], unicode=piece_unicode)]
-        self.black_knights = [BlackKnight(position=[1,'B'], unicode=piece_unicode),
-                        BlackKnight(position=[1,'G'], unicode=piece_unicode)]
-        self.black_rooks = [BlackRook(position=[1,'A'], unicode=piece_unicode),
-                    BlackRook(position=[1,'H'], unicode=piece_unicode)]
-        self.black_pawns = [BlackPawn(position=[2,i], unicode=piece_unicode) \
+        self.black_queen = BlackQueen(position=[8,'D'], unicode=piece_unicode)
+        self.black_king = BlackKing(position=[8,'E'], unicode=piece_unicode)
+        self.black_bishops = [BlackBishop(position=[8,'C'], unicode=piece_unicode), 
+                        BlackBishop(position=[8,'F'], unicode=piece_unicode)]
+        self.black_knights = [BlackKnight(position=[8,'B'], unicode=piece_unicode),
+                        BlackKnight(position=[8,'G'], unicode=piece_unicode)]
+        self.black_rooks = [BlackRook(position=[8,'A'], unicode=piece_unicode),
+                    BlackRook(position=[8,'H'], unicode=piece_unicode)]
+        self.black_pawns = [BlackPawn(position=[7,i], unicode=piece_unicode) \
             for i in self.chessboard.columns]
         
         self.white_army = [self.white_queen, self.white_king, \
@@ -82,7 +82,7 @@ class ChessBoard():
                 self.chessboard.loc[setpiece.position[0], \
                     setpiece.position[1]] = setpiece
         
-        self.print_chessboard()
+        # self.print_chessboard()
     
     def get_army_location(self, colour):
         army_location = []
@@ -178,7 +178,6 @@ class ChessBoard():
                 if setpiece.killed is False:
                     self.chessboard.loc[setpiece.position[0], \
                     setpiece.position[1]] = setpiece
-        self.print_chessboard()
 
     def find_piece_onboard(self, pos, colour):
 
@@ -200,6 +199,12 @@ class ChessBoard():
     def is_valid_move(self,chesspiece, endpos):
         valid_move = None
         attack = None
+
+        if isinstance(endpos, tuple):
+            endpos = list(endpos)
+        if type(endpos[0]) != int:
+            endpos[0],endpos[1] = endpos[1],endpos[0]
+        endpos = tuple(endpos)
 
         if chesspiece.colour[0] == 'W':
             player = 'W'
@@ -227,19 +232,20 @@ class ChessBoard():
                     valid_move = True
             else:
                 valid_move = False
-        elif isinstance(chesspiece, Pawn) and chesspiece.diagonal_move is True:
-            if endpos in opposition_army:
-                    valid_move = True
-                    attack = True
+        elif isinstance(chesspiece, Pawn):
+            print(chesspiece.diagonal_move)
+            if chesspiece.diagonal_move is True:
+                if endpos in opposition_army:
+                        valid_move = True
+                        attack = True
+                else:
+                    valid_move=False
             else:
-                print('Pawn can only move diagonally if opponent is present.')
-                valid_move=False
-            chesspiece.diagonal_move = None #reset for next move
-        elif isinstance(chesspiece, Pawn) and chesspiece.diagonal_move is not True:
-            if endpos in opposition_army or endpos in player_army:
+                if endpos in opposition_army or endpos in player_army:
                     valid_move = False
-            else:
-                valid_move=True
+                else:
+                    valid_move=True
+            chesspiece.diagonal_move = None #reset for next move   
         else:
             position_idx = potential_piece_positions.index(endpos)
             #iterate through in order of movement to check if any obstructions

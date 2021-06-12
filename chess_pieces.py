@@ -38,9 +38,6 @@ class ChessPiece():
     def get_unhindered_positions(self, endposition):
         pass
 
-    def remove_invalid_positions(self, potential_positions):
-        pass
-
     def is_valid_move(self):
         potential_positions = self.get_unhindered_positions()
     
@@ -299,32 +296,62 @@ class Pawn(ChessPiece):
 class WhiteQueen(Queen,WhiteChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['WQ', u'\u2655']
+        self.symbols = ['WQ', '♕']
 
 class WhiteKing(King, WhiteChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols =  ['WK', u'\u2654']
+        self.symbols =  ['WK', '♔']
 
 class WhiteBishop(Bishop, WhiteChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['WB', u'\u2657']
+        self.symbols = ['WB', '♗']
 
 class WhiteRook(Rook, WhiteChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['WR', u'\u2656']
+        self.symbols = ['WR', '♖']
 
 class WhiteKnight(Knight, WhiteChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['WKn', u'\u2658']
+        self.symbols = ['WKn', '♘']
 
-class WhitePawn(Pawn, WhiteChessPiece):
+class WhitePawn(Pawn,WhiteChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['WP', u'\u2659']
+        self.symbols =  ['WP','♙']
+    
+    def get_unhindered_positions(self, endposition):
+        current_position = self.position
+        potential_positions = {
+                        'up' : [], 
+                        'diag1' : [],
+                        'diag2' : []
+                        }
+        potential_positions['up'] += [(current_position[0]+1, current_position[1])]
+        if self.num_moves == 0:
+            potential_positions['up'] += [(current_position[0]+2, current_position[1])]
+        
+        diag1 = (current_position[0]+1, chr(ord(current_position[1])+1))
+        if self.pos_within_bounds(diag1):
+            potential_positions['diag1'].append(diag1)
+        
+        diag2 = (current_position[0]+1, chr(ord(current_position[1])-1))
+        if self.pos_within_bounds(diag2):
+            potential_positions['diag2'].append(diag2)
+        
+        for direction, square in potential_positions.items():
+            if tuple(endposition) in square:
+                if direction in ['diag1', 'diag2']:
+                    self.diagonal_move = True
+                return potential_positions[direction]
+
+class BlackPawn(Pawn, BlackChessPiece):
+    def __init__(self, position, unicode=False):
+        super().__init__(position, unicode)
+        self.symbols = ['BP', '♟']
     
     def get_unhindered_positions(self, endposition):
         current_position = self.position
@@ -354,55 +381,27 @@ class WhitePawn(Pawn, WhiteChessPiece):
 class BlackQueen(Queen, BlackChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['BQ', u'\u265B']
+        self.symbols = ['BQ', '♛']
 
 class BlackKing(King, BlackChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['BK', u'\u265A']
+        self.symbols = ['BK', '♚']
 
 class BlackBishop(Bishop, BlackChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['BB', u'\u265D']
+        self.symbols = ['BB', '♝']
 
 class BlackRook(Rook, BlackChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['BR', u'\u265C']
+        self.symbols = ['BR', '♜']
 
 class BlackKnight(Knight, BlackChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
-        self.symbols = ['BKn', u'\u265E']
-
-class BlackPawn(Pawn,BlackChessPiece):
-    def __init__(self, position, unicode=False):
-        super().__init__(position, unicode)
-        self.symbols =  ['BP', u'\u265F']
-    
-    def get_unhindered_positions(self, endposition):
-        current_position = self.position
-        potential_positions = {
-                        'up' : [], 
-                        'diag1' : [],
-                        'diag2' : []
-                        }
-        potential_positions['up'] += [(current_position[0]+1, current_position[1])]
-        if self.num_moves == 0:
-            potential_positions['up'] += [(current_position[0]+2, current_position[1])]
-        
-        diag1 = (current_position[0]+1, chr(ord(current_position[1])+1))
-        if self.pos_within_bounds(diag1):
-            potential_positions['diag1'].append(diag1)
-        
-        diag2 = (current_position[0]+1, chr(ord(current_position[1])-1))
-        if self.pos_within_bounds(diag2):
-            potential_positions['diag2'].append(diag2)
-        
-        for direction, square in potential_positions.items():
-            if tuple(endposition) in square:
-                return potential_positions[direction]
+        self.symbols = ['BKn', '♞']
 
 map_text_piece = {'WQ' : WhiteQueen,
                 'WK' : WhiteKing,
