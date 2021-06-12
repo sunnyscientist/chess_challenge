@@ -2,9 +2,11 @@ class ChessPiece():
     """Generic Chess Piece"""
 
     def __init__(self, position, unicode=False):
-        if isinstance(position, list):
-            position = tuple(position)
-        self.starting_position = position
+        if isinstance(position, tuple):
+            position = list(position)
+        if type(position[0]) != int:
+            position[0],position[1] = position[1],position[0]
+        position = tuple(position)
         self.__position = position
         self.unicode = unicode
         self.symbols = [0, 1]
@@ -20,8 +22,11 @@ class ChessPiece():
 
     @position.setter
     def position(self, position):
-        if isinstance(position, list):
-            position = tuple(position)
+        if isinstance(position, tuple):
+            position = list(position)
+        if type(position[0]) != int:
+            position[0],position[1] = position[1],position[0]
+        position = tuple(position)
         self.__position = position
     
     def __repr__(self):

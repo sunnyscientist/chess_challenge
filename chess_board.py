@@ -1,7 +1,7 @@
 import pandas as pd
 from tabulate import tabulate
 
-from chess_challenge.chess_pieces import (ChessPiece, WhiteKing, WhiteQueen, 
+from chess_pieces import (ChessPiece, WhiteKing, WhiteQueen, Pawn,
 WhiteBishop, WhiteKnight, WhiteRook, WhitePawn, BlackKing, BlackQueen, 
 BlackBishop, BlackKnight, BlackRook, BlackPawn, map_text_piece)
 
@@ -181,6 +181,13 @@ class ChessBoard():
         self.print_chessboard()
 
     def find_piece_onboard(self, pos, colour):
+
+        if isinstance(pos, tuple):
+            pos = list(pos)
+        if type(pos[0]) != int:
+            pos[0],pos[1] = pos[1],pos[0]
+        pos = tuple(pos)
+
         for setpiece in self.army_map[colour]:
             if isinstance(setpiece, list):
                 for piece in setpiece:
@@ -190,6 +197,70 @@ class ChessBoard():
                 if setpiece.position == pos:
                     return setpiece
     
+    def is_valid_move(self,chesspiece, endpos):
+        valid_move = None
+        attack = None
+
+        if chesspiece.colour[0] == 'W':
+            player = 'W'
+            opponent = 'B'
+        else:
+            player = 'B'
+            opponent = 'W'
+        player_army = self.get_army_location(colour = player)        
+        opposition_army = self.get_army_location(colour = opponent)
+        potential_piece_positions = chesspiece.get_unhindered_positions(endpos)
+            
+        if potential_piece_positions is None:
+            print('Invalid directional move for this piece')
+            valid_move = False
+            return valid_move, attack
+
+        if chesspiece.can_jump is True: # only knight
+            if endpos in potential_piece_positions:
+                if endpos in opposition_army:
+                    valid_move = True
+                    attack = True
+                elif endpos in player_army:
+                    valid_move = False
+                else:
+                    valid_move = True
+            else:
+                valid_move = False
+        elif isinstance(chesspiece, Pawn) and chesspiece.diagonal_move is True:
+            if endpos in opposition_army:
+                    valid_move = True
+                    attack = True
+            else:
+                print('Pawn can only move diagonally if opponent is present.')
+                valid_move=False
+            chesspiece.diagonal_move = None #reset for next move
+        elif isinstance(chesspiece, Pawn) and chesspiece.diagonal_move is not True:
+            if endpos in opposition_army or endpos in player_army:
+                    valid_move = False
+            else:
+                valid_move=True
+        else:
+            position_idx = potential_piece_positions.index(endpos)
+            #iterate through in order of movement to check if any obstructions
+            for i in range(position_idx+1):
+                if potential_piece_positions[i] in opposition_army or \
+                    potential_piece_positions[i] in player_army:
+                    if i < position_idx:
+                        valid_move = False
+                        break
+                    elif i == position_idx and \
+                        potential_piece_positions[i] in opposition_army:
+                        valid_move = True
+                        attack = True
+                    elif i == position_idx and \
+                        potential_piece_positions[i] in player_army:
+                        valid_move = False
+            
+            if valid_move is None:
+                valid_move = True
+                            
+        return valid_move, attack
     # def in_check(self, colour):
     #     if colour == 'W':
     #         for setpiece in self.black_army:

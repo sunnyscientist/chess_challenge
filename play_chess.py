@@ -2,6 +2,67 @@ import time
 from chess_board import ChessBoard
 from chess_pieces import (chess_piece_acronyms, WhiteChessPiece, Pawn)
 
+def is_valid_move(chessboard,chesspiece, endpos):
+    valid_move = None
+    attack = None
+
+    if chesspiece.colour[0] == 'W':
+        player = 'W'
+        opponent = 'B'
+    else:
+        player = 'B'
+        opponent = 'W'
+    player_army = chessboard.get_army_location(colour = player)        
+    opposition_army = chessboard.get_army_location(colour = opponent)
+    potential_piece_positions = chesspiece.get_unhindered_positions(endpos)
+        
+    if potential_piece_positions is None:
+        print('Invalid directional move for this piece')
+        valid_move = False
+        return valid_move, attack
+
+    if chesspiece.can_jump is True: #knight
+        if endpos in potential_piece_positions:
+            if endpos in opposition_army:
+                valid_move = True
+                attack = True
+            elif endpos in player_army:
+                valid_move = False
+            else:
+                valid_move = True
+        else:
+            valid_move = False
+    elif isinstance(chesspiece, Pawn) and chesspiece.diagonal_move is True:
+        if endpos in opposition_army:
+                valid_move = True
+                attack = True
+        else:
+            print('Pawn can only move diagonally if opponent is present.')
+            valid_move=False
+        chesspiece.diagonal_move = None #reset for next move
+    else:
+        position_idx = potential_piece_positions.index(endpos)
+        #iterate through in order of movement to check if any obstructions
+        for i in range(position_idx+1):
+            if potential_piece_positions[i] in opposition_army or \
+                potential_piece_positions[i] in player_army:
+                if i < position_idx:
+                    valid_move = False
+                    break
+                elif i == position_idx and \
+                    potential_piece_positions[i] in opposition_army:
+                    valid_move = True
+                    attack = True
+                elif i == position_idx and \
+                    potential_piece_positions[i] in player_army:
+                    valid_move = False
+        
+        if valid_move is None:
+            valid_move = True
+                        
+    return valid_move, attack
+
+
 if __name__ == '__main__':
     print ('\n\nWelcome to a game of chess!')
     time.sleep(1)
@@ -40,58 +101,7 @@ if __name__ == '__main__':
         #validate command 
         chesspiece, startpos, endpos = chessboard.check_command(player=player)
         endpos = tuple(endpos)
-
-        #get legal moves
-        player_army = chessboard.get_army_location(colour= players[player])        
-        opposition_army = chessboard.get_army_location(colour= players[opponent])
-        potential_piece_positions = chesspiece.get_unhindered_positions(endpos)
-        
-        if potential_piece_positions is None:
-            print('Invalid directional move for this piece')
-            continue
-        
-        attack = None
-        valid_move = None
-        # TODO: FIGURE OUT PAWN MOVEMENT
-        # all pieces apart from knight can't jump
-        if chesspiece.can_jump is True: #knight
-            if endpos in potential_piece_positions:
-                if endpos in opposition_army:
-                    valid_move = True
-                    attack = True
-                elif endpos in player_army:
-                    valid_move = False
-                else:
-                    valid_move = True
-            else:
-                valid_move = False
-        elif isinstance(chesspiece, Pawn) and chesspiece.diagonal_move is True:
-            if endpos in opposition_army:
-                    valid_move = True
-                    attack = True
-            else:
-                print('Pawn can only move diagonally if opponent is present.')
-                valid_move=False
-            chesspiece.diagonal_move = None
-        else:
-            position_idx = potential_piece_positions.index(endpos)
-            #iterate through in order of movement to check if any obstructions
-            for i in range(position_idx+1):
-                if potential_piece_positions[i] in opposition_army or \
-                    potential_piece_positions[i] in player_army:
-                    if i < position_idx:
-                        valid_move = False
-                    elif i == position_idx and \
-                        potential_piece_positions[i] in opposition_army:
-                        valid_move = True
-                        attack = True
-                    elif i == position_idx and \
-                        potential_piece_positions[i] in player_army:
-                        valid_move = False
-
-            #no obstructions
-            if valid_move is None:
-                valid_move =True
+        valid_move, attack = chessboard.is_valid_move(chesspiece,endpos)
                 
         if valid_move is not True:
             print('Illegal move')
@@ -116,11 +126,3 @@ if __name__ == '__main__':
         chessboard.update_board()
         chessboard.turns +=1
         player,opponent = opponent,player
-
-""" CREATE DICTINARIES OF POTENTIAL MOVES
-EG QUEEN {DIAG/HORIZONTAL[]/ VERTICAL}
-ITERATE THROUGH IN ORDER
-IF OPPENENT PIECE EXISTS REMOVE FOLLOWING FROM UNHINDERED
-PAWNS- CHECK FORWARD DIAGONAL ONLY IF OPPONENT
-KNIGHT CAN JUMP OVER PICE
-"""
