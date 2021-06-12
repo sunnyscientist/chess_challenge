@@ -2,6 +2,9 @@ class ChessPiece():
     """Generic Chess Piece"""
 
     def __init__(self, position, unicode=False):
+        if isinstance(position, list):
+            position = tuple(position)
+        self.starting_position = position
         self.__position = position
         self.unicode = unicode
         self.symbols = [0, 1]
@@ -17,6 +20,8 @@ class ChessPiece():
 
     @position.setter
     def position(self, position):
+        if isinstance(position, list):
+            position = tuple(position)
         self.__position = position
     
     def __repr__(self):
@@ -52,9 +57,6 @@ class WhiteChessPiece(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position,unicode)
         self.colour = 'WHITE'
-    
-    def state_army(self, chessboard):
-        print(chessboard.applymap(type))
 
 class BlackChessPiece(ChessPiece):
     """Black Chess Piece"""
@@ -62,9 +64,6 @@ class BlackChessPiece(ChessPiece):
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
         self.colour = 'BLACK'
-
-    def state_army(self, chessboard):
-        print(chessboard.applymap(type))
 
 class Queen(ChessPiece):
 
@@ -93,11 +92,24 @@ class Queen(ChessPiece):
             pos = (current_position[0]-i, current_position[1])
             if self.pos_within_bounds(pos):
                 potential_positions['down'].append(pos)
+            diag1 = (current_position[0]-i, chr(ord(current_position[1])+i))
+            diag2 = (current_position[0]-i, chr(ord(current_position[1])-i))
+            if self.pos_within_bounds(diag1):
+                potential_positions['diag1'].append(diag1)
+            if self.pos_within_bounds(diag2):
+                potential_positions['diag2'].append(diag2)
 
         for i in range(1, space_up+1):
             pos = (current_position[0]+i, current_position[1])
             if self.pos_within_bounds(pos):
                 potential_positions['up'].append(pos)
+            
+            diag3 = (current_position[0]+i, chr(ord(current_position[1])+i))
+            diag4 = (current_position[0]+i, chr(ord(current_position[1])-i))
+            if self.pos_within_bounds(diag3):
+                potential_positions['diag3'].append(diag3)
+            if self.pos_within_bounds(diag4):
+                potential_positions['diag4'].append(diag4)
         
         for i in range(1, space_left+1):
             pos = (current_position[0], chr(ord(current_position[1])-i))
@@ -109,26 +121,26 @@ class Queen(ChessPiece):
             if self.pos_within_bounds(pos):
                 potential_positions['right'].append(pos)
         
-        #diagonal moves
-        for i in range(1,current_position[0]+1):
-            backsquares = current_position[0] - i
-            forwardsquares = current_position[0] + i
+        # #diagonal moves
+        # for i in range(1,current_position[0]+1):
+        #     backsquares = current_position[0] - i
+        #     forwardsquares = current_position[0] + i
 
-            diag1 = (backsquares, chr(ord(current_position[1])+i))
-            if self.pos_within_bounds(diag1):
-                potential_positions['diag1'].append(diag1)
+        #     diag1 = (backsquares, chr(ord(current_position[1])+i))
+        #     if self.pos_within_bounds(diag1):
+        #         potential_positions['diag1'].append(diag1)
 
-            diag2 = (backsquares, chr(ord(current_position[1])-i))
-            if self.pos_within_bounds(diag2):
-                potential_positions['diag2'].append(diag2) 
+        #     diag2 = (backsquares, chr(ord(current_position[1])-i))
+        #     if self.pos_within_bounds(diag2):
+        #         potential_positions['diag2'].append(diag2) 
 
-            diag3 = (forwardsquares, chr(ord(current_position[1])-i))
-            if self.pos_within_bounds(diag3):
-                potential_positions['diag3'].append(diag3)  
+        #     diag3 = (forwardsquares, chr(ord(current_position[1])-i))
+        #     if self.pos_within_bounds(diag3):
+        #         potential_positions['diag3'].append(diag3)  
             
-            diag4 = (forwardsquares, chr(ord(current_position[1])+i))
-            if self.pos_within_bounds(diag4):
-                potential_positions['diag4'].append(diag4)         
+        #     diag4 = (forwardsquares, chr(ord(current_position[1])+i))
+        #     if self.pos_within_bounds(diag4):
+        #         potential_positions['diag4'].append(diag4)         
         
         for direction, square in potential_positions.items():
             if tuple(endposition) in square:
@@ -202,32 +214,28 @@ class Bishop(ChessPiece):
                         'diag3' : [],
                         'diag4' : []
                         }
-        for i in range(1,current_position[0]+1):
-            backsquares = current_position[0] - i
-            forwardsquares = current_position[0] + i
+        space_down = current_position[0]-1
+        space_up = self.ncols-current_position[0]
+        space_right = self.nrows - (ord('H')-ord(current_position[1]))
+        space_left = ord(current_position[1]) - ord('A')
 
-            diag1 = (backsquares, chr(ord(current_position[1])+i))
+        for i in range(1, space_down+1):
+            diag1 = (current_position[0]-i, chr(ord(current_position[1])+i))
+            diag2 = (current_position[0]-i, chr(ord(current_position[1])-i))
             if self.pos_within_bounds(diag1):
                 potential_positions['diag1'].append(diag1)
-
-            diag2 = (backsquares, chr(ord(current_position[1])-i))
             if self.pos_within_bounds(diag2):
-                potential_positions['diag2'].append(diag2) 
+                potential_positions['diag2'].append(diag2)
 
-            diag3 = (forwardsquares, chr(ord(current_position[1])-i))
+        for i in range(1, space_up+1):
+            diag3 = (current_position[0]+i, chr(ord(current_position[1])+i))
+            diag4 = (current_position[0]+i, chr(ord(current_position[1])-i))
             if self.pos_within_bounds(diag3):
-                potential_positions['diag3'].append(diag3)  
-            
-            diag4 = (forwardsquares, chr(ord(current_position[1])+i))
+                potential_positions['diag3'].append(diag3)
             if self.pos_within_bounds(diag4):
-                potential_positions['diag4'].append(diag4)         
+                potential_positions['diag4'].append(diag4)
         
         for direction, square in potential_positions.items():
-            if tuple(endposition) in square:
-               return potential_positions[direction]
-        
-        for direction, square in potential_positions.items():
-            print(square)
             if tuple(endposition) in square:
                 return potential_positions[direction]
 
@@ -301,7 +309,8 @@ class Knight(ChessPiece):
 
 class Pawn(ChessPiece):
     def __init__(self, position, unicode=False):
-        super().__init__(position, unicode) 
+        super().__init__(position, unicode)
+        self.diagonal_move = None
 
 class WhiteQueen(Queen,WhiteChessPiece):
     def __init__(self, position, unicode=False):
@@ -354,6 +363,8 @@ class WhitePawn(Pawn, WhiteChessPiece):
 
         for direction, square in potential_positions.items():
             if tuple(endposition) in square:
+                if direction in ['diag1', 'diag2']:
+                    self.diagonal_move = True
                 return potential_positions[direction]
 
 class BlackQueen(Queen, BlackChessPiece):
@@ -436,29 +447,29 @@ chess_piece_acronyms = {'WQ' : 'White Queen',
                 'BP' : 'Black Pawn'}
 
 if __name__ == '__main__':
-    bishop = Bishop(position=[4,'C'])
+    bishop = Bishop(position=[2,'B'])
     king = WhiteKing(position=[1,'E'])
     rook = BlackRook(position=[3,'E'])
-    queen = Queen(position=[4,'D'])
+    queen = Queen(position=[2,'E'])
     knight = BlackKnight(position=[8,'G'])
     whitepawn = WhitePawn(position=[7,'B'])
     blackpawn = BlackPawn(position=[2,'H'])
 
     #test positions
     print ('\nBISHOP')
-    # print(bishop.get_unhindered_positions(endposition=[2,'E']))
-    print(bishop.get_unhindered_positions(endposition=[3,'E']))
+    print(bishop.get_unhindered_positions(endposition=[2,'E']))
+    # print(bishop.get_unhindered_positions(endposition=[3,'E']))
     
     # print ('\nKING')
     # print(king.get_unhindered_positions(endposition=[2,'E']))
     # print(king.get_unhindered_positions(endposition=[3,'F']))
 
-    print ('\nQUEEN')
+    # print ('\nQUEEN')
     # print(queen.get_unhindered_positions(endposition=[8,'H']))
-    print(queen.get_unhindered_positions(endposition=[3,'F']))
+    # print(queen.get_unhindered_positions(endposition=[3,'F']))
 
-    print ('\nROOK')
-    print(rook.get_unhindered_positions(endposition=[2,'C']))
+    # print ('\nROOK')
+    # print(rook.get_unhindered_positions(endposition=[2,'C']))
     # print(rook.get_unhindered_positions(endposition=[7,'G']))
 
     # print('\nKNIGHT')

@@ -1,6 +1,6 @@
 import time
 from chess_board import ChessBoard
-from chess_pieces import chess_piece_acronyms, WhiteChessPiece
+from chess_pieces import (chess_piece_acronyms, WhiteChessPiece, Pawn)
 
 if __name__ == '__main__':
     print ('\n\nWelcome to a game of chess!')
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         #validate command 
         chesspiece, startpos, endpos = chessboard.check_command(player=player)
         endpos = tuple(endpos)
-        print (chesspiece, startpos, endpos)
+
         #get legal moves
         player_army = chessboard.get_army_location(colour= players[player])        
         opposition_army = chessboard.get_army_location(colour= players[opponent])
@@ -61,13 +61,18 @@ if __name__ == '__main__':
                     attack = True
                 elif endpos in player_army:
                     valid_move = False
-                    attack = False
                 else:
                     valid_move = True
-                    attack = False
             else:
                 valid_move = False
-                attack = False
+        elif isinstance(chesspiece, Pawn) and chesspiece.diagonal_move is True:
+            if endpos in opposition_army:
+                    valid_move = True
+                    attack = True
+            else:
+                print('Pawn can only move diagonally if opponent is present.')
+                valid_move=False
+            chesspiece.diagonal_move = None
         else:
             position_idx = potential_piece_positions.index(endpos)
             #iterate through in order of movement to check if any obstructions
@@ -83,11 +88,10 @@ if __name__ == '__main__':
                     elif i == position_idx and \
                         potential_piece_positions[i] in player_army:
                         valid_move = False
-                        attack = False
+
             #no obstructions
             if valid_move is None:
                 valid_move =True
-                attack = False
                 
         if valid_move is not True:
             print('Illegal move')
@@ -100,16 +104,15 @@ if __name__ == '__main__':
             fallen_piece = chessboard.find_piece_onboard(pos = endpos, \
                 colour = players[opponent] )
             fallen_piece.killed = True
-            if issubclass(fallen_piece, WhiteChessPiece):
+
+            if isinstance(fallen_piece, WhiteChessPiece):
                 chessboard.fallen_white_army.append(fallen_piece)
             else:
                 chessboard.fallen_black_army.append(fallen_piece)
-            print(chessboard.fallen_black_army)
-            print(chessboard.fallen_white_army)
-            print(fallen_piece, fallen_piece.killed)
-            
+                
+        chesspiece.num_moves+=1
+        chesspiece.position = endpos   
         chessboard.chessboard.loc[startpos[0],startpos[1]] = None
-        chesspiece.position = endpos
         chessboard.update_board()
         chessboard.turns +=1
         player,opponent = opponent,player

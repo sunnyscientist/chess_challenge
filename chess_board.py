@@ -25,7 +25,7 @@ class ChessBoard():
     def print_chessboard(self):
         printed_chessboard = tabulate(self.chessboard, headers= self.cols, 
         showindex='always', tablefmt="fancy_grid", colalign=("center",))
-
+        print('\n===========================================================')
         if len(self.fallen_black_army) >0:
             print(f'\nFallen Black Pieces: {self.fallen_black_army}\n')
         print('\n')
@@ -33,6 +33,7 @@ class ChessBoard():
         print('\n')
         if len(self.fallen_white_army) >0:
             print(f'\nFallen White Pieces: {self.fallen_white_army}\n')
+        print('===========================================================')
 
     def initialise_game(self, piece_unicode=False):
         """
@@ -125,17 +126,17 @@ class ChessBoard():
                 
                 #correct ordering of grid position if necessary
                 if start_pos[0].isdigit() and start_pos[1].isalpha():
-                    correct_start_pos = [int(start_pos[0]), start_pos[1]]
+                    correct_start_pos = (int(start_pos[0]), start_pos[1])
                 elif start_pos[1].isdigit() and start_pos[0].isalpha():
-                    correct_start_pos = [int(start_pos[1]), start_pos[0]]
+                    correct_start_pos = (int(start_pos[1]), start_pos[0])
                 else:
                     raise Exception((('Board Position must be composed of a '),
                     ('letter and number')))
                 
                 if end_pos[0].isdigit() and end_pos[1].isalpha():
-                    correct_end_pos = [int(end_pos[0]), end_pos[1]]
+                    correct_end_pos = (int(end_pos[0]), end_pos[1])
                 elif end_pos[1].isdigit() and end_pos[0].isalpha():
-                    correct_end_pos = [int(end_pos[1]), end_pos[0]]
+                    correct_end_pos = (int(end_pos[1]), end_pos[0])
                 else:
                     raise Exception((('Board Position must be composed of a '),
                     ('letter and number')))
@@ -171,10 +172,12 @@ class ChessBoard():
         for setpiece in self.chess_set:
             if isinstance(setpiece, list):
                 for piece in setpiece:
-                    self.chessboard.loc[piece.position[0], piece.position[1]] \
-                        = piece
+                    if piece.killed is False:
+                        self.chessboard.loc[piece.position[0], \
+                            piece.position[1]] = piece
             else:
-                self.chessboard.loc[setpiece.position[0], \
+                if setpiece.killed is False:
+                    self.chessboard.loc[setpiece.position[0], \
                     setpiece.position[1]] = setpiece
         self.print_chessboard()
 
@@ -187,6 +190,17 @@ class ChessBoard():
             else:
                 if setpiece.position == pos:
                     return setpiece
-
+    
+    # def in_check(self, colour):
+    #     if colour == 'W':
+    #         for setpiece in self.black_army:
+    #             if isinstance(setpiece, list):
+    #                 for piece in setpiece:
+    #                     if piece.killed is True:
+    #                         continue
+    #                         return piece
+    #         else:
+    #             if setpiece.position == pos:
+    #                 return setpiece
 if __name__ == '__main__':
     chessboard = ChessBoard()
