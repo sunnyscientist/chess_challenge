@@ -13,13 +13,23 @@ class ChessBoard():
         self.fallen_white_army = []
         self.fallen_black_army = []
 
-    def init_board(self):
+    def init_board(self, board_values=None):
 
         self.cols = [chr(i) for i in range(65,73)]
         self.rows = [i for i in range(8,0,-1)]
-        board_values = [[None] * len(self.cols) for i in range(len(self.rows))]
-        self.chessboard = pd.DataFrame(data=board_values, columns=self.cols, \
-            index=self.rows)
+        if board_values is not None:
+            try:
+                self.chessboard = pd.DataFrame(data=board_values, \
+                columns=self.cols,index=self.rows)
+            except Exception:
+                board_values = [[None] * len(self.cols) for i in range(len(self.rows))]
+                self.chessboard = pd.DataFrame(data=board_values, \
+                columns=self.cols,index=self.rows)
+        else:
+            board_values = [[None] * len(self.cols) for i in range(len(self.rows))]
+            self.chessboard = pd.DataFrame(data=board_values, \
+                columns=self.cols,index=self.rows)
+
 
     def print_chessboard(self):
         printed_chessboard = tabulate(self.chessboard, headers= self.cols, 
@@ -81,8 +91,6 @@ class ChessBoard():
             else:
                 self.chessboard.loc[setpiece.position[0], \
                     setpiece.position[1]] = setpiece
-        
-        # self.print_chessboard()
     
     def get_army_location(self, colour):
         army_location = []
@@ -267,16 +275,86 @@ class ChessBoard():
                 valid_move = True
                             
         return valid_move, attack
-    # def in_check(self, colour):
-    #     if colour == 'W':
-    #         for setpiece in self.black_army:
-    #             if isinstance(setpiece, list):
-    #                 for piece in setpiece:
-    #                     if piece.killed is True:
-    #                         continue
-    #                         return piece
-    #         else:
-    #             if setpiece.position == pos:
-    #                 return setpiece
+    
+    def in_check(self, colour):
+        if colour == 'W':
+            opposition = self.black_army
+            king = self.white_king
+        else:
+            opposition = self.white_army
+            king = self.black_king
+        
+        check_pieces = []
+        #check if king is in available moves for opponent
+        for setpiece in opposition:
+            if isinstance(setpiece, list):
+                for piece in setpiece:
+                    available_moves = piece.get_unhindered_positions(\
+                        (king.position[0],king.position[1]))
+                    if available_moves is not None:
+                        legal_move, attack = self.is_valid_move( \
+                            piece, (king.position[0],king.position[1]))
+                        if (legal_move, attack) == (True, True):
+                            check_pieces.append(piece)
+            else:
+                available_moves = setpiece.get_unhindered_positions( \
+                    (king.position[0],king.position[1]))
+                if available_moves is not None:
+                        legal_move, attack = self.is_valid_move( \
+                            setpiece, (king.position[0],king.position[1]))
+                        if (legal_move, attack) == (True, True):
+                            check_pieces.append(setpiece)
+        if len(check_pieces)>0:
+            return True, check_pieces
+    
+    def reset_board(self, turn_num):
+        self.init_board(board_values=self.game_log[turn_num])
+        white_rook_counter = 0
+        white_bishop_counter = 0
+        white_knight_counter = 0
+        white_pawn_counter = 0
+        black_rook_counter = 0
+        black_bishop_counter = 0
+        black_knight_counter = 0
+        black_pawn_counter = 0
+
+        for column in self.chessboard.columns:
+            for i in range(1,9):
+                if self.chessboard.loc[i,column] == None:
+                    continue
+                if isinstance(self.chessboard.loc[i,column],WhiteQueen):
+                    self.white_queen.position = (i,column)
+                elif isinstance(self.chessboard.loc[i,column],WhiteKing):
+                    self.white_king.position = (i,column)
+                elif isinstance(self.chessboard.loc[i,column],WhiteRook):
+                    self.white_rooks[white_rook_counter].position = (i,column)
+                    white_rook_counter +=1
+                elif isinstance(self.chessboard.loc[i,column],WhiteBishop):
+                    self.white_bishops[white_bishop_counter].position = (i,column)
+                    white_bishop_counter += 1
+                elif isinstance(self.chessboard.loc[i,column], WhitePawn):
+                    self.white_pawns[white_pawn_counter].position = (i,column)
+                    white_pawn_counter += 1
+                elif isinstance(self.chessboard.loc[i,column], WhiteKnight):
+                    self.white_knights[white_knight_counter].position = (i,column)
+                    white_knight_counter += 1
+                
+                elif isinstance(self.chessboard.loc[i,column],BlackQueen):
+                    self.black_queen.position = (i,column)
+                elif isinstance(self.chessboard.loc[i,column],BlackKing):
+                    self.black_king.position = (i,column)
+                elif isinstance(self.chessboard.loc[i,column],BlackRook):
+                    self.black_rooks[black_rook_counter].position = (i,column)
+                    black_rook_counter +=1
+                elif isinstance(self.chessboard.loc[i,column],BlackBishop):
+                    self.black_bishops[black_bishop_counter].position = (i,column)
+                    black_bishop_counter += 1
+                elif isinstance(self.chessboard.loc[i,column], BlackPawn):
+                    self.black_pawns[black_pawn_counter].position = (i,column)
+                    black_pawn_counter += 1
+                elif isinstance(self.chessboard.loc[i,column], BlackKnight):
+                    self.black_knights[black_knight_counter].position = (i,column)
+                    black_knight_counter += 1             
+
 if __name__ == '__main__':
     chessboard = ChessBoard()

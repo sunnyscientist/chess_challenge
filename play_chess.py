@@ -38,36 +38,51 @@ if __name__ == '__main__':
 
     while True:
         # log state of board (dict with turn number)
+        print (f'MOVE: {chessboard.turns}\n')
         chessboard.print_chessboard()
-        chessboard.game_log[chessboard.turns] = chessboard.chessboard
-        
+        board_state = chessboard.chessboard.copy(deep=True)
+        if chessboard.turns not in chessboard.game_log.keys():
+            print(f'adding move {chessboard.turns}')
+            chessboard.game_log.update({chessboard.turns:board_state})
         #validate command 
         chesspiece, startpos, endpos = chessboard.check_command(player=player)
         endpos = tuple(endpos)
+
         valid_move, attack = chessboard.is_valid_move(chesspiece,endpos)
-                
         if valid_move is not True:
             print('Illegal move')
             continue
-
+        
         if attack is True:
-            #find piece at location
-            #take it off board
-            #add to relevant fallen army
             fallen_piece = chessboard.find_piece_onboard(pos = endpos, \
                 colour = players[opponent] )
             fallen_piece.killed = True
 
             if isinstance(fallen_piece, WhiteChessPiece):
                 chessboard.fallen_white_army.append(fallen_piece)
-                print('die')
             else:
                 chessboard.fallen_black_army.append(fallen_piece)
-                print('dead')
-                
+        
         chesspiece.num_moves+=1
         chesspiece.position = endpos   
         chessboard.chessboard.loc[startpos[0],startpos[1]] = None
         chessboard.update_board()
+
+        player_in_check = chessboard.in_check(players[player])
+        print(f'CHECK  : {player_in_check}')
+        if player_in_check is not None:
+            print('Playing this move will put you in check from:')
+            for piece in player_in_check[1]:
+                print(f'{chess_piece_acronyms[piece.symbols[0]]} at',
+                f'{piece.position[1]}{piece.position[0]}')
+            print ('Please try again.\n')
+
+            chessboard.reset_board(turn_num=chessboard.turns)
+            chesspiece.position = startpos
+            chessboard.chessboard.loc[endpos[0],endpos[1]] = None
+            chessboard.update_board()
+            continue
+
+        opponent_in_check = chessboard.in_check(players[opponent])
         chessboard.turns +=1
         player,opponent = opponent,player
