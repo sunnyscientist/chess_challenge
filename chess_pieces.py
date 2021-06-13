@@ -36,13 +36,13 @@ class ChessPiece():
             return "{}".format(self.symbols[0])
     
     def get_unhindered_positions(self, endposition):
+        """Method for getting all available positions
+        regardless of obstructions"""
         pass
 
-    def is_valid_move(self):
-        potential_positions = self.get_unhindered_positions()
-    
     @staticmethod
     def pos_within_bounds(position):
+        """Checks if a grid position exists on the board"""
         if type(position[0]) == int:
             row,col = position
         else:
@@ -68,6 +68,7 @@ class BlackChessPiece(ChessPiece):
         self.colour = 'BLACK'
 
 class Queen(ChessPiece):
+    """Generic Queen Piece"""
 
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
@@ -128,10 +129,12 @@ class Queen(ChessPiece):
                return potential_positions[direction]
 
 class King(ChessPiece):
+    """Generic King Piece"""
+
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
     
-    def get_unhindered_positions(self, endposition):
+    def get_unhindered_positions(self, endposition=None):
         current_position = self.position
         potential_positions = {
                         'left' : [], 
@@ -175,11 +178,16 @@ class King(ChessPiece):
         if self.pos_within_bounds(diag4):
             potential_positions['diag4'].append(diag4)
                 
-        for direction, square in potential_positions.items():
-            if tuple(endposition) in square:
-               return potential_positions[direction]
+        if endposition is None:
+            return potential_positions
+        else:
+            for direction, square in potential_positions.items():
+                if tuple(endposition) in square:
+                    return potential_positions[direction]
 
 class Bishop(ChessPiece):
+    """Generic Bishop Piece"""
+
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
     
@@ -221,6 +229,8 @@ class Bishop(ChessPiece):
                 return potential_positions[direction]
 
 class Rook(ChessPiece):
+    """Generic Rook Piece"""
+
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
 
@@ -266,6 +276,8 @@ class Rook(ChessPiece):
                 return potential_positions[direction]
 
 class Knight(ChessPiece):
+    """Generic Knight Piece"""
+
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
         self.can_jump = True
@@ -289,6 +301,8 @@ class Knight(ChessPiece):
             return potential_positions
 
 class Pawn(ChessPiece):
+    """Generic Pawn Piece"""
+
     def __init__(self, position, unicode=False):
         super().__init__(position, unicode)
         self.diagonal_move = None

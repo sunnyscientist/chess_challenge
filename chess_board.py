@@ -14,6 +14,7 @@ class ChessBoard():
         self.fallen_black_army = []
 
     def init_board(self, board_values=None):
+        """Initialise board with None values"""
 
         self.cols = [chr(i) for i in range(65,73)]
         self.rows = [i for i in range(8,0,-1)]
@@ -30,8 +31,9 @@ class ChessBoard():
             self.chessboard = pd.DataFrame(data=board_values, \
                 columns=self.cols,index=self.rows)
 
-
     def print_chessboard(self):
+        """Method to display chessboard"""
+
         printed_chessboard = tabulate(self.chessboard, headers= self.cols, 
         showindex='always', tablefmt="fancy_grid", colalign=("center",))
         print('\n===========================================================')
@@ -93,6 +95,7 @@ class ChessBoard():
                     setpiece.position[1]] = setpiece
     
     def get_army_location(self, colour):
+        """Returns a list of positions that an specific side occupies"""
         army_location = []
         for setpiece in self.army_map[colour]:
             if isinstance(setpiece, list):
@@ -176,6 +179,7 @@ class ChessBoard():
         return command_success
 
     def update_board(self):
+        """Updates board positions based on pieces"""
         for setpiece in self.chess_set:
             if isinstance(setpiece, list):
                 for piece in setpiece:
@@ -188,6 +192,7 @@ class ChessBoard():
                     setpiece.position[1]] = setpiece
 
     def find_piece_onboard(self, pos, colour):
+        """Method to find specific ChessPiece Instance from position"""
 
         if isinstance(pos, tuple):
             pos = list(pos)
@@ -205,6 +210,7 @@ class ChessBoard():
                     return setpiece
     
     def is_valid_move(self,chesspiece, endpos):
+        """Checks the legality of a chesspiece and its desired destination"""
         valid_move = None
         attack = None
 
@@ -225,7 +231,6 @@ class ChessBoard():
         potential_piece_positions = chesspiece.get_unhindered_positions(endpos)
             
         if potential_piece_positions is None:
-            print('Invalid directional move for this piece')
             valid_move = False
             return valid_move, attack
 
@@ -240,15 +245,14 @@ class ChessBoard():
                     valid_move = True
             else:
                 valid_move = False
-        elif isinstance(chesspiece, Pawn):
-            print(chesspiece.diagonal_move)
+        elif isinstance(chesspiece, Pawn): #only pawns can move diagonally
             if chesspiece.diagonal_move is True:
                 if endpos in opposition_army:
                         valid_move = True
                         attack = True
                 else:
                     valid_move=False
-            else:
+            else: #pawns cannot take opponent pieces directly in front
                 if endpos in opposition_army or endpos in player_army:
                     valid_move = False
                 else:
@@ -260,13 +264,16 @@ class ChessBoard():
             for i in range(position_idx+1):
                 if potential_piece_positions[i] in opposition_army or \
                     potential_piece_positions[i] in player_army:
+                    #piece in the way that you can't jump over
                     if i < position_idx:
                         valid_move = False
                         break
+                    #valid attack move
                     elif i == position_idx and \
                         potential_piece_positions[i] in opposition_army:
                         valid_move = True
                         attack = True
+                    #own piece occupying square
                     elif i == position_idx and \
                         potential_piece_positions[i] in player_army:
                         valid_move = False
@@ -277,6 +284,8 @@ class ChessBoard():
         return valid_move, attack
     
     def in_check(self, colour):
+        """Method to detect whether a king is in check"""
+
         if colour == 'W':
             opposition = self.black_army
             king = self.white_king
@@ -307,7 +316,50 @@ class ChessBoard():
         if len(check_pieces)>0:
             return True, check_pieces
     
+    def is_checkmate(self,colour):
+        """Method to determine whether checkmate has occured"""
+        if colour == 'W':
+            opposition = self.black_army
+            king = self.white_king
+        else:
+            opposition = self.white_army
+            king = self.black_king
+        potential_moves = king.get_unhindered_positions().values()
+        possible_moves = [move for sublist in potential_moves for move in sublist]
+        
+        # king can only move max of 8 positions. if each position is covered
+        # by an attacker it is checkmate
+        attacking_squares = 0
+        for move in possible_moves:
+            for setpiece in opposition:
+                if isinstance(setpiece, list):
+                    for piece in setpiece:
+                        potential_attack = piece.get_unhindered_positions(move)
+                        valid_move, attack = self.is_valid_move(piece, move)
+                        if valid_move is False:
+                            attacking_squares +=1
+                            break
+                        elif valid_move is True and attack is True:
+                            attacking_squares += 1
+                            break
+                else:
+                    potential_attack = setpiece.get_unhindered_positions(move)
+                    valid_move, attack = self.is_valid_move(setpiece, move)
+                    if valid_move is False:
+                        attacking_squares +=1
+                        break
+                    elif valid_move is True and attack is True:
+                        attacking_squares += 1
+                        break
+
+        if attacking_squares == len(possible_moves):
+            checkmate = True
+        else:
+            checkmate = False
+        return checkmate
+  
     def reset_board(self, turn_num):
+        """Resets board for a specific turn"""
         self.init_board(board_values=self.game_log[turn_num])
         white_rook_counter = 0
         white_bishop_counter = 0
