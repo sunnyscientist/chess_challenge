@@ -1,5 +1,8 @@
+import os
+import sys
 import pandas as pd
 from tabulate import tabulate
+sys.path.insert(0, os.path.abspath('..'))
 
 from chess_challenge.chess_pieces import (ChessPiece, WhiteKing, WhiteQueen, Pawn,
 WhiteBishop, WhiteKnight, WhiteRook, WhitePawn, BlackKing, BlackQueen, 
