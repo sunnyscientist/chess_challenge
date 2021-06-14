@@ -1,4 +1,5 @@
-DESCRIPTION: 
+DESCRIPTION:
+------------
 Module to emulate a multiplayer chess game in a terminal window
 
 
@@ -33,6 +34,8 @@ Execute command: python play_chess.py
 To move each piece the command is : <piece acronym> <current piece position> <end piece position> 
 
 The acronyms for each chess piece can be found when you run the game.
+	
+Pawn promotion and castling have not been implemented.
 
 
 Running Tests
