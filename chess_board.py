@@ -1,5 +1,6 @@
 import os
 import sys
+from numpy.core.fromnumeric import sort
 import pandas as pd
 from tabulate import tabulate
 sys.path.insert(0, os.path.abspath('..'))
@@ -328,34 +329,59 @@ class ChessBoard():
             opposition = self.white_army
             king = self.black_king
         potential_moves = king.get_unhindered_positions().values()
-        possible_moves = [move for sublist in potential_moves for move in sublist]
-        
+        possible_moves = list(set([move for sublist in potential_moves for move in sublist]))
+        possible_legal_moves = []
+        for move in possible_moves:
+            valid_move, attack = self.is_valid_move(king, endpos=move)
+            if valid_move is True:
+                possible_legal_moves.append(move)
         # king can only move max of 8 positions. if each position is covered
         # by an attacker it is checkmate
-        attacking_squares = 0
-        for move in possible_moves:
+        attacking_moves = 0
+        attacking_squares = []
+
+        for move in possible_legal_moves:
             for setpiece in opposition:
                 if isinstance(setpiece, list):
                     for piece in setpiece:
                         potential_attack = piece.get_unhindered_positions(move)
                         valid_move, attack = self.is_valid_move(piece, move)
                         if valid_move is False:
-                            attacking_squares +=1
-                            break
-                        elif valid_move is True and attack is True:
-                            attacking_squares += 1
-                            break
+                            continue
+                        elif valid_move is True:
+                            attacking_moves += 1
+                            attacking_squares.append(move)
+                            continue
                 else:
                     potential_attack = setpiece.get_unhindered_positions(move)
                     valid_move, attack = self.is_valid_move(setpiece, move)
                     if valid_move is False:
-                        attacking_squares +=1
-                        break
-                    elif valid_move is True and attack is True:
-                        attacking_squares += 1
-                        break
+                        continue
+                    elif valid_move is True:
+                        attacking_moves += 1
+                        attacking_squares.append(move)
+                        continue
+    
+        possible_legal_moves = sorted(possible_legal_moves,key=lambda x: (x[0],x[1]))
+        attacking_squares = sorted(list(set(attacking_squares)), key=lambda x: (x[0],x[1]))
+        # check to see if any opponents are backing up this square - logic not perfect 
+        missing_squares = set(possible_legal_moves) - set(attacking_squares)
+        for square in missing_squares:
+            for setpiece in opposition:
+                if isinstance(setpiece, list):
+                    for piece in setpiece:
+                        potential_attack = piece.get_unhindered_positions(square)
+                        if potential_attack is None:
+                            continue
+                        attacking_squares.append(square)
+                else:
+                    potential_attack = setpiece.get_unhindered_positions(square)
+                    valid_move, attack = self.is_valid_move(setpiece, square)
+                    if potential_attack is None:
+                        continue
+                    attacking_squares.append(square)
 
-        if attacking_squares == len(possible_moves):
+        if len(set(attacking_squares)) == len(set(possible_legal_moves)):
             checkmate = True
         else:
             checkmate = False
