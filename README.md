@@ -6,17 +6,17 @@ Module to emulate a multiplayer chess game in a terminal window
 Module Structure
 ----------------
 
-__init__.py
-chess_board.py  : holds Chessboard class
-chess_pieces.py : holds classes for chess pieces in game
-play_chess.py   : script to play game
-tests/
-     __init__.py
-     test_pieces.py : tests to verify movements of each piece
-     test_board.py  : tests to verify board state
+|   __init__.py
+|   chess_board.py  : holds Chessboard class
+|   chess_pieces.py : holds classes for chess pieces in game
+|   play_chess.py   : script to play game
+|   tests/
+ -----|   __init__.py
+      |   test_pieces.py : tests to verify movements of each piece
+      |   test_board.py  : tests to verify board state
 
 
-Requirements
+Requirements   
 -------------
 
 Python 3.7 +  (written in Python 3.9)
